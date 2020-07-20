@@ -309,6 +309,7 @@ class Ui_MainWindow(object):
 
     def changeToFile(self):
         self.pbAddPDFs.clicked.connect(self.getFile)
+        pass
 
     def mergeAction(self):
         '''Merge PDF's'''       
