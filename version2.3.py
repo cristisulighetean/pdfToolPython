@@ -10,7 +10,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QInputDialog, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QInputDialog, QFileDialog, QMessageBox, QLineEdit
 from PyQt5.QtGui import QIcon
 from pdfUtil import *
 
@@ -18,6 +18,10 @@ import sys
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+
+        #setup an empty list
+        self.fnames = []
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.setFixedSize(643, 285)
         MainWindow.setGeometry(350, 250, 600, 600)
@@ -68,6 +72,8 @@ class Ui_MainWindow(object):
         self.passBox = QtWidgets.QLineEdit(self.removPassTab)
         self.passBox.setGeometry(QtCore.QRect(300, 30, 113, 25))
         self.passBox.setObjectName("passBox")
+        self.passBox.setEchoMode(QtWidgets.QLineEdit.Password)
+
         self.processRemovepb = QtWidgets.QPushButton(self.removPassTab)
         self.processRemovepb.setGeometry(QtCore.QRect(210, 80, 201, 41))
         font = QtGui.QFont()
@@ -95,6 +101,8 @@ class Ui_MainWindow(object):
         self.addPassBox = QtWidgets.QLineEdit(self.addPassTab)
         self.addPassBox.setGeometry(QtCore.QRect(300, 30, 113, 25))
         self.addPassBox.setObjectName("addPassBox")
+        self.addPassBox.setEchoMode(QLineEdit.Password)
+
         self.processAddPasspb = QtWidgets.QPushButton(self.addPassTab)
         self.processAddPasspb.setGeometry(QtCore.QRect(210, 80, 201, 41))
         font = QtGui.QFont()
@@ -173,10 +181,6 @@ class Ui_MainWindow(object):
         self.processSplitpb.setFont(font)
         self.processSplitpb.setObjectName("processSplitpb")
         self.actionsTab.addTab(self.splitTab, "")
-        self.pdfTodocTab = QtWidgets.QWidget()
-        self.pdfTodocTab.setObjectName("pdfTodocTab")
-        self.processGetTextpb = QtWidgets.QPushButton(self.pdfTodocTab)
-        self.processGetTextpb.setGeometry(QtCore.QRect(210, 80, 201, 41))
         font = QtGui.QFont()
         font.setFamily("Noto Sans Georgian SemCond Thin")
         font.setPointSize(16)
@@ -186,9 +190,6 @@ class Ui_MainWindow(object):
         font.setWeight(50)
         font.setStrikeOut(False)
         font.setKerning(True)
-        self.processGetTextpb.setFont(font)
-        self.processGetTextpb.setObjectName("processGetTextpb")
-        self.actionsTab.addTab(self.pdfTodocTab, "")
         self.pbAddPDFs = QtWidgets.QPushButton(self.centralwidget)
         self.pbAddPDFs.setGeometry(QtCore.QRect(470, 30, 131, 31))
         font = QtGui.QFont()
@@ -224,7 +225,7 @@ class Ui_MainWindow(object):
 
 
         #Process Merge PDF's button
-        self.processCombinepb.clicked.connect(self.mergeAction)
+        self.processCombinepb.clicked.connect(self.combineAction)
         
         #Process Remove pass Button
         self.processRemovepb.clicked.connect(self.decryptAction)
@@ -241,11 +242,11 @@ class Ui_MainWindow(object):
         #Process Split Button
         self.processSplitpb.clicked.connect(self.splitAction)
 
-        #Process Get Text Button
-        self.processGetTextpb.clicked.connect(self.gettextAction)
-
         #Process Get Files Button
         self.pbAddPDFs.clicked.connect(self.getFiles)
+
+        #Get watermark file Button
+        self.pbSelectWatermark.clicked.connect(self.getWatermark)
       
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -275,8 +276,6 @@ class Ui_MainWindow(object):
         self.actionsTab.setTabText(self.actionsTab.indexOf(self.rotateTab), _translate("MainWindow", "Rotate"))
         self.processSplitpb.setText(_translate("MainWindow", "Process"))
         self.actionsTab.setTabText(self.actionsTab.indexOf(self.splitTab), _translate("MainWindow", "Split"))
-        self.processGetTextpb.setText(_translate("MainWindow", "Process"))
-        self.actionsTab.setTabText(self.actionsTab.indexOf(self.pdfTodocTab), _translate("MainWindow", "Get text to doc"))
         self.pbAddPDFs.setText(_translate("MainWindow", "Add PDF\'s"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuAbout.setTitle(_translate("MainWindow", "About"))
@@ -284,7 +283,6 @@ class Ui_MainWindow(object):
         self.actionExit.setStatusTip(_translate("MainWindow", "Exit the App"))
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Esc"))
         self.actionCredits.setText(_translate("MainWindow", "Credits"))
-        
         
 
     
@@ -296,61 +294,139 @@ class Ui_MainWindow(object):
     
     
     def getFiles(self):
-        self.fnames = QFileDialog.getOpenFileNames(filter='PDF files (*.pdf)')
-        self.fnames = self.fnames[0]
+        self.fnames += QFileDialog.getOpenFileNames(filter='PDF files (*.pdf)')[0]
+    
 
+    def getWatermark(self):
+        self.watermarkFile = QFileDialog.getOpenFileName(filter='PDF files (*.pdf)')[0]
 
-    def getFile(self):
-        self.fname = QFileDialog.getOpenFileName(filter='PDF files (*.pdf)')
-        self.fname = self.fname[0]
 
     def changeToFiles(self):
         self.pbAddPDFs.clicked.connect(self.getFiles)
 
     def changeToFile(self):
         self.pbAddPDFs.clicked.connect(self.getFile)
-        pass
+        
 
-    def mergeAction(self):
-        '''Merge PDF's'''       
-        paths = self.fnames     #add condition to add pdf's before process
-        combinePDFs(paths)      
-        self.msgBox("PDF's merged")
-        print(paths)
-        print("PDF's merged")
+    def combineAction(self):
+        '''Merge PDF's'''
+        if not self.fnames:
+            self.msgBox("No PDF's selected!")
+        else:
+            try:
+                paths = self.fnames
+                combinePDFs(paths)
+                self.msgBox("PDF's combined")
+
+            except Exception as error:
+                print(error)
+                self.msgBox("An error occured! Please try again!")
+        self.fnames = [] 
+
+                
+        
 
 
     def decryptAction(self):
         '''Remove Pass of PDF's'''
-        self.msgBox("Password removed")
+        #Get password from text field
+        if not self.fnames:
+            self.msgBox("No PDF's selected!")
+        elif not self.passBox.text():
+            self.msgBox("No password enterd!")
+        else:
+            try:
+                password = self.passBox.text()
+                paths = self.fnames
+                removePass(paths,password)
+                self.msgBox("Password removed")
+            except Exception as errorMsg:
+                print(errorMsg)
+                self.msgBox("An error occured! Please try again!")
+        self.fnames = [] 
+
 
 
     def encryptAction(self):
         '''Add password to PDF's'''
-        self.msgBox("Password added")
-        
-
+        #Get password from text field
+        if not self.fnames:
+            self.msgBox("No PDF's selected!")
+        elif not self.addPassBox.text():
+            self.msgBox("No password enterd!")
+        else:
+            try:
+                password = self.addPassBox.text()
+                paths = self.fnames
+                encrypyPDF(paths,password)
+                self.msgBox("Password added")
+            except Exception as errorMsg:
+                print(errorMsg)
+                self.msgBox("An error occured! Please try again!")
+        self.fnames = [] 
+ 
 
     def rotateAction(self):
         '''Rotate CW or CCW'''
-        self.msgBox("PDF's rotated")
-        
+        if not self.fnames:
+            self.msgBox("No PDF's selected!")
+        elif self.radioCK.isChecked():
+            try:
+                option = 'cw'
+                paths = self.fnames
+                rotatepdf(paths, option)
+                self.msgBox("PDF's rotated")
+
+            except Exception as error:
+                print(error)
+                self.msgBox("An error occured! Please try again!")
+        elif self.radioCCK.isChecked():
+            try:
+                option = 'ccw'
+                paths = self.fnames
+                rotatepdf(paths, option)
+                self.msgBox("PDF's rotated")
+
+            except Exception as error:
+                print(error)
+                self.msgBox("An error occured! Please try again!")
+        self.fnames = []                        
+
 
 
     def watermarkAction(self):
         '''Add watermark'''
-        self.msgBox("Watermark Added")
+        if not self.fnames:
+            self.msgBox("No PDF's selected!")
+        elif not self.watermarkFile:
+            #put condition to select pdf's watermark
+            self.msgBox("No Watermark PDF's selected!")
+        else:
+            try:
+                paths = self.fnames
+                addWatermark(paths, self.watermarkFile)                
+                self.msgBox("Watermark Added")
+            except Exception as error:
+                print(error)
+                self.msgBox("An error occured! Please try again!")
+        self.fnames = []                        
         
 
 
     def splitAction(self):
         '''Split pdf by 1 page'''
-        self.msgBox("PDF's splitted")
+        if not self.fnames[0]:
+            self.msgBox("No PDF's selected!")
+        else:
+            try:
+                paths = self.fnames
+                splitpdf(paths)
+                self.msgBox("PDF's splitted")
+            except Exception as error:
+                print(error)
+                self.msgBox("An error occured! Please try again!")
+        self.fnames = []                        
         
-
-
-    def gettextAction(self):
-        pass
 
 
 if __name__ == "__main__":

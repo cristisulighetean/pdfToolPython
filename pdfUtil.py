@@ -1,14 +1,17 @@
 from PyPDF2 import PdfFileReader, PdfFileWriter
 import PyPDF2
 from PyQt5.QtWidgets import QFileDialog
+import os
 
-
+def getNameFile(path):
+    return os.path.basename(path)
 
 def combinePDFs(paths):
     '''Given a list of pdf's combine and save them to a new file'''
     pdf_writer = PdfFileWriter()
 
     for path in paths:
+        print(path)
         #Create PDF Reader object
         pdf_reader = PdfFileReader(path)
         for page in range(pdf_reader.getNumPages()):
@@ -16,13 +19,12 @@ def combinePDFs(paths):
             pdf_writer.addPage(pdf_reader.getPage(page))
 
     #Get name of save file
-    outputName = path[:-4] + '-combined.pdf'
+    outputName = path[:-4] + ' pdfs-combined.pdf'
 
     #Write out the merged pdf
     with open(outputName, 'wb') as out:
         pdf_writer.write(out)
 
-    #popup process complete
 
 
 
@@ -46,7 +48,6 @@ def removePass(paths,password):
             with open(outName, 'wb') as out:
                 pdf_writer.write(out)
     
-    #popup process complete
 
 
 
@@ -67,8 +68,6 @@ def encrypyPDF(paths, password):
         with open(outName, 'wb') as out:
             pdf_writer.write(out)
         
-    #popup process complete
-
 
 
 def addWatermark(paths,watermark):
@@ -90,7 +89,6 @@ def addWatermark(paths,watermark):
         with open(outName, 'wb') as out:
             pdf_writer.write(out)
 
-    #process complete popup
 
 
 
@@ -105,7 +103,6 @@ def getTxt(file):
     with open(outName, 'wb') as out:
         out.write(text)
 
-    #process complete popup
 
 
 
