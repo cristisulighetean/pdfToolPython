@@ -284,6 +284,8 @@ class Ui_MainWindow(object):
         self.actionExit.setStatusTip(_translate("MainWindow", "Exit the App"))
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Esc"))
         self.actionCredits.setText(_translate("MainWindow", "Credits"))
+        
+        
 
     
     def msgBox(self,text):
@@ -297,10 +299,21 @@ class Ui_MainWindow(object):
         self.fnames = QFileDialog.getOpenFileNames(filter='PDF files (*.pdf)')
         self.fnames = self.fnames[0]
 
+
+    def getFile(self):
+        self.fname = QFileDialog.getOpenFileName(filter='PDF files (*.pdf)')
+        self.fname = self.fname[0]
+
+    def changeToFiles(self):
+        self.pbAddPDFs.clicked.connect(self.getFiles)
+
+    def changeToFile(self):
+        self.pbAddPDFs.clicked.connect(self.getFile)
+
     def mergeAction(self):
-        '''Merge PDF's'''
-        paths = self.fnames
-        combinePDFs(paths)
+        '''Merge PDF's'''       
+        paths = self.fnames     #add condition to add pdf's before process
+        combinePDFs(paths)      
         self.msgBox("PDF's merged")
         print(paths)
         print("PDF's merged")
